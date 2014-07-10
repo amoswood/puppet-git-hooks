@@ -28,6 +28,21 @@ if [ -f "$git_root/.git" ]; then
     fi
 fi
 
+#encrypt eyaml files
+if type eyaml >/dev/null 2>&1; then
+    for changedfile in `git diff --cached --name-only -- '*.eyaml' '*.eyml'`; do
+      ${subhook_root}/eyaml_encrypt.sh $changedfile
+      RC=$?
+      if [ "$RC" -ne 0 ]; then
+          failures=`expr $failures + 1`
+      fi
+    done
+else
+  if test `git diff --cached --name-only -- '*.eyaml' '*.eyml' | wc -l` -gt 0; then
+    echo "Error: eyaml files were being committed but eyaml is not installed."
+    failures=`expr $failures + 1`
+  fi
+fi
 
 #check puppet manifest syntax
 if type puppet >/dev/null 2>&1; then
